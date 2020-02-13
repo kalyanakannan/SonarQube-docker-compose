@@ -1,0 +1,52 @@
+#sysctl -w vm.max_map_count=262144 run this command before composer up
+version: "3"
+
+services:
+
+    sonarqube:
+        image: sonarqube
+        restart: always
+        networks:
+            - sonarnet
+        ports:
+            - "9000:9000"
+        
+        depends_on:
+            - db
+        
+        volumes:
+            - ./sonarqube_conf:/opt/sonarqube/conf
+            - ./sonarqube_extensions:/opt/sonarqube/extensions
+            - ./sonarqube_logs:/opt/sonarqube/logs
+            - ./sonarqube_data:/opt/sonarqube/data
+
+        environment:
+            SONARQUBE_JDBC_USERNAME: simpli
+            SONARQUBE_JDBC_PASSWORD: Simpli@123
+            SONARQUBE_JDBC_URL: jdbc:postgresql://db:5432/sonarqube?useUnicode=true&characterEncoding=utf8&rewriteBatchedStatements=true&useConfigs=maxPerformance
+
+    db:
+        image: postgres
+        restart: always
+        networks:
+            - sonarnet
+        environment:
+            POSTGRES_DB: sonarqube
+            POSTGRES_USER: simpli
+            POSTGRES_PASSWORD: Simpli@123
+
+        volumes: 
+            - ./postgresql:/var/lib/postgresql
+            - ./postgresql_data:/var/lib/postgresql/data
+
+    adminer:
+        image: adminer
+        restart: always
+        networks:
+            - sonarnet
+        ports:
+            - 8089:8089
+
+networks:
+    sonarnet:
+        driver: bridge
